@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>여행 예약 신청서</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#3478F6; --blue-dark:#1C5FD6; --blue-soft:#EBF3FF;
+  --blue-mid:#C7DEFF; --bg:#EDF4FF; --text:#111827;
+  --text-sub:#5A6A82; --border:#D4E4FA;
+  --shadow:0 2px 12px rgba(52,120,246,.10); --r:14px;
+}
+body{font-family:'Pretendard','맑은 고딕',sans-serif;font-size:17px;background:var(--bg);color:var(--text);line-height:1.6}
+
+.header{background:linear-gradient(135deg,#1C5FD6,#3478F6 60%,#5B9EFF);color:#fff;padding:22px 20px 18px;text-align:center}
+.header .badge{display:inline-block;background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.45);border-radius:50px;padding:4px 16px;font-size:13px;font-weight:700;margin-bottom:9px}
+.header h1{font-size:22px;font-weight:800;letter-spacing:-.5px}
+.header p{font-size:13px;opacity:.8;margin-top:4px;font-weight:500}
+
+/* ── 메인 탭 ── */
+.tabs{display:flex;background:#fff;border-bottom:2.5px solid var(--blue-mid);position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(52,120,246,.08)}
+.tab-btn{flex:1;padding:14px 6px;border:none;background:none;font-size:14px;font-weight:700;color:var(--text-sub);cursor:pointer;transition:.2s;white-space:nowrap;font-family:inherit}
+.tab-btn.active{color:var(--blue);background:var(--blue-soft);border-bottom:2.5px solid var(--blue);margin-bottom:-2.5px}
+
+/* ── 서브 탭 (차량 렌트 내부) ── */
+.sub-tabs{display:flex;gap:8px;margin-bottom:16px}
+.sub-tab{flex:1;padding:12px;border:2px solid var(--border);border-radius:10px;font-size:15px;font-weight:700;color:var(--text-sub);background:#fff;cursor:pointer;text-align:center;transition:.2s;font-family:inherit}
+.sub-tab.active{border-color:var(--blue);background:var(--blue);color:#fff}
+
+/* ── 레이아웃 ── */
+.content{max-width:760px;margin:0 auto;padding:18px 14px 60px}
+.panel{display:none}.panel.active{display:block}
+.sub-panel{display:none}.sub-panel.active{display:block}
+
+/* ── 카드 ── */
+.card{background:#fff;border-radius:var(--r);padding:20px 18px;margin-bottom:14px;box-shadow:var(--shadow);border:1px solid rgba(212,228,250,.7)}
+.card-title{font-size:15.5px;font-weight:800;color:var(--blue-dark);margin-bottom:16px;padding-bottom:10px;border-bottom:1.5px solid var(--blue-soft);display:flex;align-items:center;gap:8px}
+
+/* ── 폼 ── */
+.form-group{margin-bottom:15px}
+.form-group label{display:block;font-size:14.5px;font-weight:700;color:#374151;margin-bottom:7px}
+.req{color:#F05454;margin-left:3px}
+.tip{font-size:12.5px;color:#94a3b8;margin-top:4px;font-weight:500;display:block}
+.form-control{width:100%;padding:13px 15px;border:1.5px solid var(--border);border-radius:10px;font-size:16px;color:var(--text);background:#fff;transition:.2s;font-family:inherit;-webkit-appearance:none}
+.form-control:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(52,120,246,.12)}
+select.form-control{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235A6A82' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:40px}
+textarea.form-control{resize:vertical;min-height:88px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+
+/* ── 인원 카운터 ── */
+.counter-wrap{display:flex;align-items:center;gap:14px;padding:4px 0}
+.cnt-btn{width:40px;height:40px;border:2px solid var(--border);border-radius:10px;background:#fff;font-size:20px;cursor:pointer;font-weight:700;color:var(--text-sub);transition:.15s;font-family:inherit;display:flex;align-items:center;justify-content:center}
+.cnt-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-soft)}
+.cnt-num{font-size:20px;font-weight:800;min-width:28px;text-align:center}
+
+/* ── 상품 구성 버튼 ── */
+.prod-wrap{display:flex;gap:8px;flex-wrap:wrap}
+.prod-btn{padding:11px 18px;border:2px solid var(--border);border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;background:#fff;color:var(--text-sub);font-family:inherit;transition:.15s}
+.prod-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-soft)}
+.prod-btn.active{border-color:var(--blue);background:var(--blue);color:#fff}
+
+/* ── 베드 타입 ── */
+.bed-wrap{display:flex;gap:8px;flex-wrap:wrap}
+.bed-btn{padding:10px 18px;border:2px solid var(--border);border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;background:#fff;color:var(--text-sub);font-family:inherit}
+.bed-btn.active{border-color:var(--blue);background:var(--blue);color:#fff}
+
+/* ── 조회 결과 ── */
+.lookup-box{background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-top:14px}
+.info-row{display:flex;padding:8px 0;border-bottom:1px solid var(--border);font-size:14.5px}
+.info-row:last-child{border-bottom:none}
+.info-label{font-weight:700;color:var(--text-sub);width:120px;flex-shrink:0}
+.info-value{color:var(--text);font-weight:600}
+
+/* ── 알림 (에러 인라인) ── */
+.alert{padding:13px 16px;border-radius:10px;margin-bottom:14px;font-size:14.5px;font-weight:700;display:none}
+.alert-error{background:#FFF0F0;color:#C0182A;border:1px solid #FFBBBB}
+.alert.show{display:block}
+
+/* ── 커튼 토스트 (성공/에러 공통) ── */
+.toast{
+  position:fixed;top:0;left:0;right:0;z-index:9999;
+  padding:0 24px;text-align:center;font-size:16px;font-weight:800;
+  color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;
+  height:0;overflow:hidden;
+  transition:height .35s cubic-bezier(.4,0,.2,1), padding .35s cubic-bezier(.4,0,.2,1), box-shadow .35s;
+  box-shadow:none;
+}
+.toast.toast-success{background:linear-gradient(90deg,#0a8f50,#12b865);}
+.toast.toast-error  {background:linear-gradient(90deg,#c0182a,#e02030);}
+.toast.show{height:58px;padding:0 24px;box-shadow:0 4px 20px rgba(0,0,0,.18);}
+
+/* ── 제출 완료 오버레이 ── */
+.ov{position:fixed;inset:0;z-index:10000;background:rgba(17,24,39,.55);display:none;align-items:center;justify-content:center;padding:24px}
+.ov.show{display:flex}
+.ov-card{background:#fff;border-radius:20px;max-width:380px;width:100%;padding:34px 26px;text-align:center;box-shadow:0 12px 48px rgba(0,0,0,.25)}
+.ov-icon{font-size:54px;margin-bottom:12px}
+.ov-card h2{font-size:21px;font-weight:800;color:#0D6E3F;margin-bottom:8px}
+.ov-card p{font-size:14.5px;color:#5A6A82;font-weight:600;line-height:1.6;margin-bottom:22px}
+.ov-btns{display:flex;gap:10px}
+.ov-btn{flex:1;padding:14px;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;border:none;background:var(--blue);color:#fff}
+.ov-btn.ghost{background:#fff;color:var(--text-sub);border:2px solid var(--border)}
+
+/* ── 버튼 ── */
+.btn-submit{width:100%;padding:15px;background:var(--blue);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:800;cursor:pointer;transition:.2s;margin-top:6px;font-family:inherit;box-shadow:0 4px 14px rgba(52,120,246,.28)}
+.btn-submit:hover{background:var(--blue-dark)}
+.btn-submit:disabled{background:#B0C4E0;cursor:not-allowed;box-shadow:none}
+.btn-primary{padding:12px 20px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-outline{padding:12px 20px;background:#fff;color:var(--blue);border:2px solid var(--blue);border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-sm{padding:9px 18px;font-size:14px;border-radius:8px}
+
+/* ── 로딩 ── */
+.spinner{display:inline-block;width:18px;height:18px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:7px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── 필드 인라인 에러 ── */
+.field-error{display:block;margin-top:6px;font-size:13px;font-weight:700;color:#C0182A}
+.field-error.hidden{display:none!important}
+.form-control.input-error{border-color:#F05454;box-shadow:0 0 0 3px rgba(240,84,84,.12)}
+
+.hidden{display:none!important}
+.mt14{margin-top:14px}
+.flex-gap{display:flex;gap:10px;align-items:stretch}
+
+/* ── 반응형 ── */
+@media(max-width:640px){
+  body{font-size:16px}
+  .header{padding:18px 16px 14px}
+  .header h1{font-size:19px}
+  .content{padding:14px 12px 60px}
+  .card{padding:16px 14px}
+  .tabs{position:sticky;top:0}
+  .tab-btn{font-size:12px;padding:11px 2px;letter-spacing:-.3px}
+  .row2{grid-template-columns:1fr}
+  .form-control{font-size:16px;padding:12px 13px} /* iOS 확대 방지: 16px 이상 필수 */
+  .btn-submit{padding:14px;font-size:16px}
+  .btn-primary{font-size:14px;padding:11px 16px}
+  .sub-tabs{gap:6px}
+  .sub-tab{font-size:14px;padding:10px}
+  .counter-wrap{gap:10px}
+  .cnt-btn{width:38px;height:38px;font-size:18px}
+  .cnt-num{font-size:18px}
+  .bed-btn{padding:9px 14px;font-size:13px}
+  .flex-gap{flex-direction:column}
+  .flex-gap .btn-outline,
+  .flex-gap .btn-submit{flex:none;width:100%}
+  .lookup-box{padding:12px}
+  .info-label{width:90px;font-size:13.5px}
+  .info-value{font-size:13.5px}
+}
+@media(max-width:380px){
+  .tab-btn{font-size:11px;padding:10px 1px}
+  .header h1{font-size:17px}
+}
+</style>
+</head>
+<body>
+
+<!-- 커튼 토스트 -->
+<div id="globalToast" class="toast"></div>
+
+<!-- 제출 완료 오버레이 -->
+<div id="successOverlay" class="ov">
+  <div class="ov-card">
+    <div class="ov-icon">✅</div>
+    <h2>제출이 완료되었습니다</h2>
+    <p id="ovMsg">신청이 정상적으로 접수되었습니다.</p>
+    <div class="ov-btns">
+      <button class="ov-btn ghost" onclick="closeWindow()">닫기</button>
+      <button class="ov-btn" onclick="ovHome()">처음으로</button>
+    </div>
+  </div>
+</div>
+
+<div class="header">
+  <div class="badge">아이러브베트남</div>
+  <h1>✈️ 여행 예약 신청서</h1>
+  <p>아래 탭을 선택하여 신청서를 작성해 주세요</p>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('t1')">📋 고객 정보 입력</button>
+  <button class="tab-btn"        onclick="switchTab('t2')">🔄 예약 변경</button>
+  <button class="tab-btn"        onclick="switchTab('t3')">🚗 차량 렌트</button>
+</div>
+
+<div class="content">
+
+<!-- ══════════════════════════════
+     TAB 1 : 고객 정보 입력
+══════════════════════════════ -->
+<div id="t1" class="panel active">
+  <div id="a1" class="alert"></div>
+
+  <!-- 상품 선택 -->
+  <div class="card">
+    <div class="card-title">🗂 상품 선택 <span class="req">*</span></div>
+    <div class="form-group">
+      <label>카테고리</label>
+      <select id="categorySelect" class="form-control" onchange="onCategoryChange()">
+        <option value="">카테고리를 선택해 주세요</option>
+      </select>
+      <span id="productLoading" class="tip" style="display:block">목록 불러오는 중…</span>
+    </div>
+    <div class="form-group" id="productBtnWrap" style="display:none;margin-bottom:0">
+      <label>상품 구성 <span class="req">*</span></label>
+      <div id="productButtons" class="prod-wrap"></div>
+    </div>
+    <div id="departureTimeWrap" class="form-group mt14 hidden">
+      <label>출발 시간 <span class="req">*</span></label>
+      <select id="departureTime" class="form-control">
+        <option value="">출발 시간 선택</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- 기본 정보 -->
+  <div class="card">
+    <div class="card-title">👤 기본 정보</div>
+    <div class="form-group">
+      <label>투어 날짜 <span class="req">*</span></label>
+      <input type="date" id="tourDate" class="form-control">
+    </div>
+    <div class="form-group">
+      <label>대표자 영문 성함 <span class="req">*</span>
+        <span class="tip">여권과 동일하게 입력 (예: KIM MINSOO)</span>
+      </label>
+      <input type="text" id="repName" class="form-control" placeholder="예) KIM MINSOO" oninput="this.value=this.value.toUpperCase()">
+    </div>
+    <div class="form-group">
+      <label>연락처 <span class="req">*</span>
+        <span class="tip">숫자만 입력하면 자동으로 하이픈이 적용됩니다</span>
+      </label>
+      <input type="tel" id="contact" class="form-control" placeholder="예) 010-1234-5678" inputmode="numeric" oninput="formatPhone(this)">
+    </div>
+    <div class="row2">
+      <div class="form-group" style="margin-bottom:0">
+        <label>픽업 호텔 <span class="req">*</span></label>
+        <input type="text" id="pickupHotel" class="form-control" placeholder="호텔명 입력">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>드랍 호텔</label>
+        <input type="text" id="dropHotel" class="form-control" placeholder="호텔명 입력">
+      </div>
+    </div>
+  </div>
+
+  <!-- 인원 및 옵션 -->
+  <div class="card">
+    <div class="card-title">👥 인원 및 옵션</div>
+    <div class="row2">
+      <div class="form-group">
+        <label>성인</label>
+        <div class="counter-wrap">
+          <button class="cnt-btn" onclick="changeCount('adults',-1)">−</button>
+          <span class="cnt-num" id="adultsNum">1</span>
+          <button class="cnt-btn" onclick="changeCount('adults',1)">+</button>
+        </div>
+        <input type="hidden" id="adults" value="1">
+      </div>
+      <div class="form-group">
+        <label>소아</label>
+        <div class="counter-wrap">
+          <button class="cnt-btn" onclick="changeCount('children',-1)">−</button>
+          <span class="cnt-num" id="childrenNum">0</span>
+          <button class="cnt-btn" onclick="changeCount('children',1)">+</button>
+        </div>
+        <input type="hidden" id="children" value="0">
+      </div>
+    </div>
+    <div id="childAgeWrap" class="form-group hidden">
+      <label>소아 만 나이 <span class="req">*</span>
+        <span class="tip">콤마로 구분 (예: 7, 5)</span>
+      </label>
+      <input type="text" id="childrenAge" class="form-control" placeholder="예) 7, 5">
+    </div>
+    <div class="form-group">
+      <label>옵션 메모 <span class="tip" style="display:inline">(선택)</span></label>
+      <textarea id="options" class="form-control" placeholder="옵션 내용을 입력해 주세요"></textarea>
+    </div>
+  </div>
+
+  <!-- 베드 타입 (1박 포함 시) -->
+  <div id="bedTypeWrap" class="card hidden">
+    <div class="card-title">🛏 베드 타입</div>
+    <div class="bed-wrap">
+      <button class="bed-btn" onclick="selectBed(this,'트윈')">트윈</button>
+      <button class="bed-btn" onclick="selectBed(this,'더블')">더블</button>
+      <button class="bed-btn" onclick="selectBed(this,'싱글')">싱글</button>
+    </div>
+    <input type="hidden" id="bedType" value="">
+  </div>
+
+  <!-- 추가 메모 -->
+  <div class="card">
+    <div class="card-title">📝 추가 메모</div>
+    <textarea id="memo" class="form-control" placeholder="특이 사항이 있으면 입력해 주세요" rows="3"></textarea>
+  </div>
+
+  <button class="btn-submit" id="submitBtn1" onclick="submitForm1()">신청서 제출</button>
+</div>
+
+
+<!-- ══════════════════════════════
+     TAB 2 : 예약 변경
+══════════════════════════════ -->
+<div id="t2" class="panel">
+  <div id="a2" class="alert"></div>
+
+  <div class="card">
+    <div class="card-title">🔍 예약 조회</div>
+    <div class="form-group">
+      <label>대표자 영문 성함 <span class="req">*</span></label>
+      <input type="text" id="chgName" class="form-control" placeholder="예) KIM MINSOO" oninput="this.value=this.value.toUpperCase()">
+    </div>
+    <div class="form-group">
+      <label>연락처 <span class="req">*</span></label>
+      <input type="tel" id="chgContact" class="form-control" placeholder="예) 010-1234-5678" inputmode="numeric" oninput="formatPhone(this)">
+    </div>
+    <button class="btn-primary" id="chgLookupBtn" style="width:100%" onclick="lookupForChange()">🔍 조회하기</button>
+  </div>
+
+  <div id="chgResultCard" class="card hidden">
+    <div class="card-title">📄 예약 내역</div>
+    <div id="chgResultBody" class="lookup-box"></div>
+    <button class="btn-primary mt14" style="width:100%" onclick="openChangeForm()">✏️ 변경 요청하기</button>
+  </div>
+
+  <div id="chgFormCard" class="card hidden">
+    <div class="card-title">✏️ 예약 변경 내용 수정</div>
+    <div class="form-group" id="wrap_c_tourDate">
+      <label>투어 날짜 <span class="req">*</span></label>
+      <input type="date" id="c_tourDate" class="form-control">
+      <span id="err_c_tourDate" class="field-error hidden">투어 날짜를 입력해 주세요.</span>
+    </div>
+    <div class="row2">
+      <div class="form-group">
+        <label>픽업 호텔</label>
+        <input type="text" id="c_pickupHotel" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>드랍 호텔</label>
+        <input type="text" id="c_dropHotel" class="form-control">
+      </div>
+    </div>
+    <div class="row2">
+      <div class="form-group">
+        <label>성인</label>
+        <div class="counter-wrap">
+          <button class="cnt-btn" onclick="changeCount('c_adults',-1)">−</button>
+          <span class="cnt-num" id="c_adultsNum">1</span>
+          <button class="cnt-btn" onclick="changeCount('c_adults',1)">+</button>
+        </div>
+        <input type="hidden" id="c_adults" value="1">
+      </div>
+      <div class="form-group">
+        <label>소아</label>
+        <div class="counter-wrap">
+          <button class="cnt-btn" onclick="changeCount('c_children',-1)">−</button>
+          <span class="cnt-num" id="c_childrenNum">0</span>
+          <button class="cnt-btn" onclick="changeCount('c_children',1)">+</button>
+        </div>
+        <input type="hidden" id="c_children" value="0">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>소아 만 나이</label>
+      <input type="text" id="c_childrenAge" class="form-control" placeholder="예) 7, 5">
+    </div>
+    <div class="form-group">
+      <label>옵션 메모</label>
+      <textarea id="c_options" class="form-control" rows="2"></textarea>
+    </div>
+    <div class="form-group" id="wrap_changeMemo">
+      <label>변경 사유 <span class="req">*</span></label>
+      <textarea id="changeMemo" class="form-control" rows="3" placeholder="변경 내용을 간략히 설명해 주세요"></textarea>
+      <span id="err_changeMemo" class="field-error hidden">변경 사유를 입력해 주세요.</span>
+    </div>
+    <div class="flex-gap mt14">
+      <button class="btn-outline" style="flex:1" onclick="cancelChange()">취소</button>
+      <button class="btn-submit" id="submitChangeBtn" style="flex:2;margin-top:0" onclick="submitChange()">변경 요청 제출</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════
+     TAB 3 : 차량 렌트
+══════════════════════════════ -->
+<div id="t3" class="panel">
+  <div id="a3" class="alert"></div>
+
+  <!-- 신규 / 예약 변경 서브탭 -->
+  <div class="sub-tabs">
+    <button class="sub-tab active" onclick="switchSubTab('r_new',this)">🆕 신규 신청</button>
+    <button class="sub-tab"       onclick="switchSubTab('r_chg',this)">✏️ 예약 변경</button>
+  </div>
+
+  <!-- 신규 신청 -->
+  <div id="r_new" class="sub-panel active">
+    <div class="card">
+      <div class="card-title">🚗 차량 렌트 신청</div>
+      <div class="form-group">
+        <label>운행 날짜 <span class="req">*</span></label>
+        <input type="date" id="r_driveDate" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>대표자 영문 성함 <span class="req">*</span></label>
+        <input type="text" id="r_repName" class="form-control" placeholder="예) KIM MINSOO" oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <div class="form-group">
+        <label>연락처 <span class="req">*</span>
+          <span class="tip">숫자만 입력하면 자동으로 하이픈이 적용됩니다</span>
+        </label>
+        <input type="tel" id="r_contact" class="form-control" placeholder="예) 010-1234-5678" inputmode="numeric" oninput="formatPhone(this)">
+      </div>
+      <div class="row2">
+        <div class="form-group">
+          <label>픽업 호텔 <span class="req">*</span></label>
+          <input type="text" id="r_pickupHotel" class="form-control" placeholder="호텔명 입력">
+        </div>
+        <div class="form-group">
+          <label>드랍 호텔</label>
+          <input type="text" id="r_dropHotel" class="form-control" placeholder="호텔명 입력">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>출발 시간 <span class="req">*</span></label>
+        <input type="time" id="r_departureTime" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>운행 일정 메모</label>
+        <textarea id="r_schedule" class="form-control" rows="4" placeholder="방문 장소 및 일정을 간략히 적어 주세요&#10;예) 09:00 출발 → 시내 관광 → 12:00 공항"></textarea>
+      </div>
+      <div class="form-group">
+        <label>추가 메모</label>
+        <textarea id="r_memo" class="form-control" rows="2" placeholder="특이 사항이 있으면 입력해 주세요"></textarea>
+      </div>
+      <button class="btn-submit" id="submitCarBtn" onclick="submitCarRent()">차량 렌트 신청</button>
+    </div>
+
+  </div>
+
+  <!-- 예약 변경 -->
+  <div id="r_chg" class="sub-panel">
+    <div class="card">
+      <div class="card-title">🔍 예약 조회</div>
+      <div class="form-group">
+        <label>대표자 영문 성함 <span class="req">*</span></label>
+        <input type="text" id="rc_name" class="form-control" placeholder="예) KIM MINSOO" oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <div class="form-group">
+        <label>연락처 <span class="req">*</span></label>
+        <input type="tel" id="rc_contact" class="form-control" placeholder="예) 010-1234-5678" inputmode="numeric" oninput="formatPhone(this)">
+      </div>
+      <button class="btn-primary" id="rcLookupBtn" style="width:100%" onclick="lookupCarRent()">🔍 조회하기</button>
+    </div>
+
+    <div id="rcResultCard" class="card hidden">
+      <div class="card-title">📄 예약 내역</div>
+      <div id="rcResultBody" class="lookup-box"></div>
+      <button class="btn-primary mt14" style="width:100%" onclick="openCarChangeForm()">✏️ 변경하기</button>
+    </div>
+
+    <div id="rcFormCard" class="card hidden">
+      <div class="card-title">✏️ 차량 렌트 예약 변경</div>
+      <div class="form-group">
+        <label>운행 날짜 <span class="req">*</span></label>
+        <input type="date" id="rc_driveDate" class="form-control">
+      </div>
+      <div class="row2">
+        <div class="form-group">
+          <label>픽업 호텔</label>
+          <input type="text" id="rc_pickupHotel" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>드랍 호텔</label>
+          <input type="text" id="rc_dropHotel" class="form-control">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>출발 시간</label>
+        <input type="time" id="rc_departureTime" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>운행 일정 메모</label>
+        <textarea id="rc_schedule" class="form-control" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>추가 메모</label>
+        <textarea id="rc_memo" class="form-control" rows="2"></textarea>
+      </div>
+      <div class="flex-gap mt14">
+        <button class="btn-outline" style="flex:1" onclick="cancelCarChange()">취소</button>
+        <button class="btn-submit" id="submitCarChangeBtn" style="flex:2;margin-top:0" onclick="submitCarChange()">변경 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+let productList  = [];
+let selectedProduct = null;  // 선택된 상품 {category,name,type,times}
+let chgLookup = null;  // 예약 변경용 조회 결과
+let rcLookup  = null;  // 차량 렌트 변경용 조회 결과
+
+// ── 초기화 ──────────────────────────────────
+(function init() {
+  google.script.run
+    .withSuccessHandler(function(list) {
+      productList = list || [];
+      document.getElementById('productLoading').style.display = 'none';
+      // 카테고리(A열) 중복 제거하여 드롭다운 구성
+      const cats = [];
+      productList.forEach(function(p){ if (p.category && cats.indexOf(p.category) === -1) cats.push(p.category); });
+      const sel = document.getElementById('categorySelect');
+      cats.forEach(function(c){
+        const o = document.createElement('option'); o.value = o.textContent = c; sel.appendChild(o);
+      });
+    })
+    .withFailureHandler(function() {
+      document.getElementById('productLoading').textContent = '목록 로드 실패 — 새로고침 해주세요';
+    })
+    .getProductList();
+})();
+
+// ── 탭 전환 ─────────────────────────────────
+function switchTab(id) {
+  ['t1','t2','t3'].forEach((t,i) => {
+    document.getElementById(t).classList.toggle('active', t===id);
+    document.querySelectorAll('.tab-btn')[i].classList.toggle('active', t===id);
+  });
+  window.scrollTo(0,0);
+}
+
+// ── 서브탭 전환 (차량 렌트) ──────────────────
+function switchSubTab(id, el) {
+  document.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(id).classList.add('active');
+  ['a3','rcResultCard','rcFormCard','chgResultCard'].forEach(hide);
+}
+
+// ── 제출 완료 오버레이 ──────────────────────
+function showSuccess(msg) {
+  document.getElementById('ovMsg').textContent = msg || '정상적으로 접수되었습니다.';
+  document.getElementById('successOverlay').classList.add('show');
+}
+function closeWindow() {
+  try { window.open('', '_self'); window.close(); } catch(e) {}
+  // 인앱 브라우저(카카오톡 등)는 close가 막힐 수 있음 → 안내
+  setTimeout(function(){
+    document.getElementById('ovMsg').textContent =
+      '창을 닫아 주세요. (자동으로 닫히지 않으면 브라우저의 닫기 버튼을 눌러주세요)';
+  }, 500);
+}
+function ovHome() {
+  document.getElementById('successOverlay').classList.remove('show');
+  resetForm1();
+  hide('chgResultCard'); hide('chgFormCard'); chgLookup = null;
+  hide('rcResultCard');  hide('rcFormCard');  rcLookup  = null;
+  ['chgName','chgContact','r_contact','r_driveDate','r_repName','r_pickupHotel',
+   'r_dropHotel','r_departureTime','r_schedule','r_memo','rc_name','rc_contact']
+    .forEach(function(id){ setVal(id,''); });
+  switchTab('t1');
+  window.scrollTo(0,0);
+}
+
+// ── 연락처 자동 하이픈 (숫자만) ──────────────
+function formatPhone(el) {
+  var n = el.value.replace(/[^0-9]/g, '').slice(0, 11);
+  var r;
+  if (n.length < 4)       r = n;
+  else if (n.length < 7)  r = n.slice(0,3) + '-' + n.slice(3);
+  else if (n.length < 11) r = n.slice(0,3) + '-' + n.slice(3,6) + '-' + n.slice(6);
+  else                    r = n.slice(0,3) + '-' + n.slice(3,7) + '-' + n.slice(7);
+  el.value = r;
+}
+
+// ── 카테고리 선택 → 상품 구성 버튼 렌더 ──────
+function onCategoryChange() {
+  const cat = v('categorySelect');
+  selectedProduct = null;
+  hide('departureTimeWrap'); hide('bedTypeWrap');
+  document.querySelectorAll('.bed-btn').forEach(b=>b.classList.remove('active'));
+  setVal('bedType','');
+
+  const wrap = document.getElementById('productButtons');
+  wrap.innerHTML = '';
+  const items = productList.filter(function(p){ return p.category === cat; });
+  if (!cat || !items.length) {
+    document.getElementById('productBtnWrap').style.display = 'none';
+    return;
+  }
+  items.forEach(function(p){
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'prod-btn';
+    btn.textContent = p.name || '(이름 없음)';
+    btn.onclick = function(){ selectProduct(p, btn); };
+    wrap.appendChild(btn);
+  });
+  document.getElementById('productBtnWrap').style.display = 'block';
+}
+
+// ── 상품 구성 버튼 선택 (1개만) ────────────────
+function selectProduct(p, btn) {
+  selectedProduct = p;
+  document.querySelectorAll('#productButtons .prod-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const type = p.type || '';
+  if (type === '단독 투어' && p.times) {
+    const ts = document.getElementById('departureTime');
+    ts.innerHTML = '<option value="">출발 시간 선택</option>';
+    p.times.split(',').map(function(t){return t.trim();}).filter(Boolean).forEach(function(t){
+      const o = document.createElement('option'); o.value = o.textContent = t; ts.appendChild(o);
+    });
+    show('departureTimeWrap');
+  } else { hide('departureTimeWrap'); }
+  type.indexOf('1박') !== -1 ? show('bedTypeWrap') : hide('bedTypeWrap');
+}
+
+// ── 인원 카운터 ──────────────────────────────
+function changeCount(id, d) {
+  const inp = document.getElementById(id);
+  const num = document.getElementById(id+'Num');
+  let v = Math.max(0, parseInt(inp.value)+d);
+  inp.value = v; num.textContent = v;
+  if (id==='children') v>0 ? show('childAgeWrap') : hide('childAgeWrap');
+}
+
+// ── 베드 타입 ─────────────────────────────────
+function selectBed(el, val) {
+  document.querySelectorAll('.bed-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('bedType').value = val;
+}
+
+// ── TAB 1 제출 ───────────────────────────────
+function submitForm1() {
+  const type = selectedProduct ? (selectedProduct.type || '') : '';
+  if (!v('categorySelect')) return showAlert('a1','error','카테고리를 선택해 주세요.');
+  if (!selectedProduct)     return showAlert('a1','error','상품 구성을 선택해 주세요.');
+  if (!v('tourDate'))       return showAlert('a1','error','투어 날짜를 입력해 주세요.');
+  if (!v('repName'))        return showAlert('a1','error','대표자 영문 성함을 입력해 주세요.');
+  if (!v('contact'))        return showAlert('a1','error','연락처를 입력해 주세요.');
+  if (!v('pickupHotel'))    return showAlert('a1','error','픽업 호텔을 입력해 주세요.');
+  if (type==='단독 투어'&&!v('departureTime')) return showAlert('a1','error','출발 시간을 선택해 주세요.');
+
+  setLoading('submitBtn1',true);
+  const data = {
+    category:selectedProduct.category,   // C 상품명 = 카테고리
+    productName:selectedProduct.name,    // D 상품유형 = 상품 구성명
+    productType:type,                    // D열 메모 = 구분
+    tourDate:v('tourDate'), repName:v('repName'), contact:v('contact'),
+    pickupHotel:v('pickupHotel'), dropHotel:v('dropHotel'),
+    departureTime:v('departureTime'), adults:v('adults'), children:v('children'),
+    childrenAge:v('childrenAge'), options:v('options'), bedType:v('bedType'), memo:v('memo')
+  };
+  google.script.run
+    .withSuccessHandler(function(res) {
+      setLoading('submitBtn1',false);
+      if (!res.ok) return showAlert('a1','error',res.msg);
+      resetForm1();
+      showSuccess(res.msg);
+    })
+    .withFailureHandler(function(e){ setLoading('submitBtn1',false); showAlert('a1','error',e.message); })
+    .submitCustomerInfo(data);
+}
+
+function resetForm1() {
+  document.getElementById('categorySelect').value='';
+  document.getElementById('productButtons').innerHTML='';
+  document.getElementById('productBtnWrap').style.display='none';
+  selectedProduct = null;
+  ['tourDate','repName','contact','pickupHotel','dropHotel','childrenAge','options','memo','bedType'].forEach(id=>setVal(id,''));
+  document.getElementById('adultsNum').textContent='1'; setVal('adults','1');
+  document.getElementById('childrenNum').textContent='0'; setVal('children','0');
+  hide('departureTimeWrap'); hide('bedTypeWrap'); hide('childAgeWrap');
+  document.querySelectorAll('.bed-btn').forEach(b=>b.classList.remove('active'));
+}
+
+function copyBookingNo() {
+  navigator.clipboard.writeText(lastBookingNo).then(()=>{
+    const btn=document.getElementById('copyBtn');
+    btn.textContent='✅ 복사됨'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.innerHTML='📋 번호 복사'; btn.classList.remove('copied'); },2000);
+  });
+}
+
+// ── TAB 2 예약 변경 조회 ──────────────────────
+function lookupForChange() {
+  const name = v('chgName'); const tel = v('chgContact');
+  if (!name) return showAlert('a2','error','영문 성함을 입력해 주세요.');
+  if (!tel)  return showAlert('a2','error','연락처를 입력해 주세요.');
+  hide('chgResultCard'); hide('chgFormCard');
+
+  const btn = document.getElementById('chgLookupBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 조회 중…';
+  function restoreChgBtn(){ btn.disabled=false; btn.innerHTML='🔍 조회하기'; }
+
+  const tid = setTimeout(function(){
+    restoreChgBtn();
+    showAlert('a2','error','응답 시간 초과. 잠시 후 다시 시도해 주세요.');
+  }, 15000);
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      clearTimeout(tid); restoreChgBtn();
+      if (!res.ok) return showAlert('a2','error',res.msg);
+      chgLookup = res.data;
+      renderLookupBox('chgResultBody', res.data, [
+        ['상품명','상품명'],['투어날짜','투어 날짜'],
+        ['대표자영문성함','대표자'],['픽업호텔','픽업 호텔'],['드랍호텔','드랍 호텔'],
+        ['성인','성인'],['소아','소아']
+      ]);
+      show('chgResultCard');
+    })
+    .withFailureHandler(function(e){ clearTimeout(tid); restoreChgBtn(); showAlert('a2','error','서버 오류: '+e.message); })
+    .lookupByContact(name, tel);
+}
+
+function openChangeForm() {
+  if (!chgLookup) return;
+  const d = chgLookup;
+  setVal('c_tourDate',    d['투어날짜']||'');
+  setVal('c_pickupHotel', d['픽업호텔']||'');
+  setVal('c_dropHotel',   d['드랍호텔']||'');
+  setVal('c_childrenAge', d['소아만나이']||'');
+  setVal('c_options',     d['옵션메모']||'');
+  const a=parseInt(d['성인'])||1, c=parseInt(d['소아'])||0;
+  setVal('c_adults',String(a)); document.getElementById('c_adultsNum').textContent=a;
+  setVal('c_children',String(c)); document.getElementById('c_childrenNum').textContent=c;
+  show('chgFormCard');
+  document.getElementById('chgFormCard').scrollIntoView({behavior:'smooth'});
+}
+function cancelChange(){ hide('chgFormCard'); }
+
+function submitChange() {
+  // 필드 에러 초기화
+  ['c_tourDate','changeMemo'].forEach(function(id){
+    const errEl = document.getElementById('err_'+id);
+    const inpEl = document.getElementById(id);
+    if(errEl) errEl.classList.add('hidden');
+    if(inpEl) inpEl.classList.remove('input-error');
+  });
+
+  // 유효성 검사 — 에러 시 해당 필드로 스크롤
+  function fieldError(id, msg) {
+    const errEl = document.getElementById('err_'+id);
+    const inpEl = document.getElementById(id);
+    if(errEl){ errEl.textContent = msg; errEl.classList.remove('hidden'); }
+    if(inpEl){ inpEl.classList.add('input-error'); inpEl.scrollIntoView({behavior:'smooth', block:'center'}); }
+  }
+
+  if (!v('c_tourDate')) return fieldError('c_tourDate','투어 날짜를 입력해 주세요.');
+  if (!v('changeMemo')) return fieldError('changeMemo','변경 사유를 입력해 주세요.');
+
+  // 제출 버튼 로딩
+  const btn = document.getElementById('submitChangeBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 제출 중…';
+
+  const data = {
+    _rowIndex:   chgLookup ? chgLookup._rowIndex : null,
+    tourDate:v('c_tourDate'),
+    pickupHotel:v('c_pickupHotel'), dropHotel:v('c_dropHotel'),
+    adults:v('c_adults'), children:v('c_children'),
+    childrenAge:v('c_childrenAge'), options:v('c_options'),
+    changeMemo:v('changeMemo')
+  };
+  google.script.run
+    .withSuccessHandler(function(res){
+      btn.disabled = false; btn.innerHTML = '변경 요청 제출';
+      if(res.ok){
+        hide('chgFormCard'); hide('chgResultCard'); chgLookup = null;
+        showSuccess(res.msg);
+      } else {
+        showAlert('a2','error', res.msg);
+      }
+    })
+    .withFailureHandler(function(e){
+      btn.disabled = false; btn.innerHTML = '변경 요청 제출';
+      showAlert('a2','error', e.message);
+    })
+    .submitChange(data);
+}
+
+// ── TAB 3 차량 렌트 신규 ─────────────────────
+function submitCarRent() {
+  if (!v('r_driveDate'))    return showAlert('a3','error','운행 날짜를 입력해 주세요.');
+  if (!v('r_repName'))      return showAlert('a3','error','대표자 영문 성함을 입력해 주세요.');
+  if (!v('r_contact'))      return showAlert('a3','error','연락처를 입력해 주세요.');
+  if (!v('r_pickupHotel'))  return showAlert('a3','error','픽업 호텔을 입력해 주세요.');
+  if (!v('r_departureTime'))return showAlert('a3','error','출발 시간을 입력해 주세요.');
+  const data = {
+    contact:v('r_contact'),
+    driveDate:v('r_driveDate'), repName:v('r_repName'),
+    pickupHotel:v('r_pickupHotel'), dropHotel:v('r_dropHotel'),
+    departureTime:v('r_departureTime'), schedule:v('r_schedule'), memo:v('r_memo')
+  };
+
+  const btn = document.getElementById('submitCarBtn');
+  if (btn.disabled) return;            // 중복 제출 방지
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 제출 중…';
+  function restoreCarBtn(){ btn.disabled=false; btn.innerHTML='차량 렌트 신청'; }
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      restoreCarBtn();
+      if(!res.ok) return showAlert('a3','error',res.msg);
+      ['r_contact','r_driveDate','r_repName','r_pickupHotel','r_dropHotel','r_departureTime','r_schedule','r_memo'].forEach(id=>setVal(id,''));
+      showSuccess(res.msg);
+    })
+    .withFailureHandler(function(e){ restoreCarBtn(); showAlert('a3','error',e.message); })
+    .submitCarRent(data);
+}
+function copyRentBookingNo() {
+  navigator.clipboard.writeText(lastRentBookingNo).then(()=>{
+    const btn=document.getElementById('rentCopyBtn');
+    btn.textContent='✅ 복사됨'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.innerHTML='📋 번호 복사'; btn.classList.remove('copied'); },2000);
+  });
+}
+
+// ── TAB 3 차량 렌트 변경 ─────────────────────
+function lookupCarRent() {
+  const name=v('rc_name'), tel=v('rc_contact');
+  if (!name) return showAlert('a3','error','영문 성함을 입력해 주세요.');
+  if (!tel)  return showAlert('a3','error','연락처를 입력해 주세요.');
+  hide('rcResultCard'); hide('rcFormCard');
+
+  const btn = document.getElementById('rcLookupBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 조회 중…';
+  function restoreRcBtn(){ btn.disabled=false; btn.innerHTML='🔍 조회하기'; }
+
+  const tid = setTimeout(function(){
+    restoreRcBtn();
+    showAlert('a3','error','응답 시간 초과. 잠시 후 다시 시도해 주세요.');
+  }, 15000);
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      clearTimeout(tid); restoreRcBtn();
+      if(!res.ok) return showAlert('a3','error',res.msg);
+      rcLookup = res.data;
+      renderLookupBox('rcResultBody', res.data, [
+        ['운행날짜','운행 날짜'],['대표자영문성함','대표자'],
+        ['픽업호텔','픽업 호텔'],['드랍호텔','드랍 호텔'],['출발시간','출발 시간'],['운행일정','운행 일정']
+      ]);
+      show('rcResultCard');
+    })
+    .withFailureHandler(function(e){ clearTimeout(tid); restoreRcBtn(); showAlert('a3','error','서버 오류: '+e.message); })
+    .lookupCarRentByContact(name, tel);
+}
+
+function openCarChangeForm() {
+  if (!rcLookup) return;
+  const d = rcLookup;
+  setVal('rc_driveDate',     d['운행날짜']||'');
+  setVal('rc_pickupHotel',   d['픽업호텔']||'');
+  setVal('rc_dropHotel',     d['드랍호텔']||'');
+  setVal('rc_departureTime', d['출발시간']||'');
+  setVal('rc_schedule',      d['운행일정']||'');
+  setVal('rc_memo',          d['비고']||'');
+  show('rcFormCard');
+  document.getElementById('rcFormCard').scrollIntoView({behavior:'smooth'});
+}
+function cancelCarChange(){ hide('rcFormCard'); }
+
+function submitCarChange() {
+  if (!v('rc_driveDate')) return showAlert('a3','error','운행 날짜를 입력해 주세요.');
+  const data = {
+    _rowIndex: rcLookup._rowIndex,
+    driveDate:v('rc_driveDate'), pickupHotel:v('rc_pickupHotel'),
+    dropHotel:v('rc_dropHotel'), departureTime:v('rc_departureTime'),
+    schedule:v('rc_schedule'), memo:v('rc_memo')
+  };
+  const btn = document.getElementById('submitCarChangeBtn');
+  if (btn.disabled) return;            // 중복 제출 방지
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 저장 중…';
+  function restoreBtn(){ btn.disabled=false; btn.innerHTML='변경 저장'; }
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      restoreBtn();
+      if(res.ok){ hide('rcFormCard'); hide('rcResultCard'); rcLookup=null; showSuccess(res.msg); }
+      else { showAlert('a3','error',res.msg); }
+    })
+    .withFailureHandler(function(e){ restoreBtn(); showAlert('a3','error',e.message); })
+    .updateCarRent(data);
+}
+
+// ── 공통 유틸 ────────────────────────────────
+function renderLookupBox(elId, data, fields) {
+  document.getElementById(elId).innerHTML = fields
+    .filter(([k])=>data[k])
+    .map(([k,l])=>`<div class="info-row"><span class="info-label">${l}</span><span class="info-value">${data[k]}</span></div>`)
+    .join('');
+}
+function v(id)        { return (document.getElementById(id)||{}).value||''; }
+function setVal(id,v) { const el=document.getElementById(id); if(el) el.value=v; }
+function show(id)     { document.getElementById(id).classList.remove('hidden'); }
+function hide(id)     { document.getElementById(id).classList.add('hidden'); }
+function showAlert(id,type,msg) {
+  if (type === 'success') {
+    // 성공은 상단 커튼 토스트
+    showToast(msg, 'success');
+    // 인라인 알림은 숨김
+    const el=document.getElementById(id);
+    if(el) el.classList.remove('show');
+  } else {
+    // 에러는 기존 인라인 방식
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.className=`alert alert-${type} show`; el.textContent=msg;
+    el.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+}
+function showToast(msg, type='success', duration=3200){
+  const t=document.getElementById('globalToast');
+  t.textContent=msg;
+  t.className=`toast toast-${type} show`;
+  clearTimeout(t._tid);
+  t._tid=setTimeout(()=>t.classList.remove('show'), duration);
+}
+function setLoading(id,on) {
+  const btn=document.getElementById(id); if(!btn) return;
+  btn.disabled=on;
+  btn.innerHTML=on?'<span class="spinner"></span> 제출 중…':'신청서 제출';
+}
+</script>
+</body>
+</html>
