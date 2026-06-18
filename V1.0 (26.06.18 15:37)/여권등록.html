@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>여권 정보 등록</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<!-- HEIC(아이폰 기본 포맷) → JPG 변환 -->
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#3478F6; --blue-dark:#1C5FD6; --blue-soft:#EBF3FF;
+  --blue-mid:#C7DEFF; --bg:#EDF4FF; --text:#111827;
+  --text-sub:#5A6A82; --border:#D4E4FA;
+  --shadow:0 2px 12px rgba(52,120,246,.10); --r:14px;
+}
+body{font-family:'Pretendard','맑은 고딕',sans-serif;font-size:17px;background:var(--bg);color:var(--text);line-height:1.6}
+
+.header{background:linear-gradient(135deg,#1C5FD6,#3478F6 60%,#5B9EFF);color:#fff;padding:24px 20px 20px;text-align:center}
+.header .badge{display:inline-block;background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.45);border-radius:50px;padding:4px 16px;font-size:13px;font-weight:700;margin-bottom:9px}
+.header h1{font-size:22px;font-weight:800;letter-spacing:-.5px}
+.header p{font-size:13px;opacity:.8;margin-top:4px;font-weight:500}
+
+.content{max-width:680px;margin:0 auto;padding:20px 14px 60px}
+
+/* ── 커튼 토스트 ── */
+.toast{position:fixed;top:0;left:0;right:0;z-index:9999;padding:0 24px;text-align:center;font-size:16px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;height:0;overflow:hidden;transition:height .35s cubic-bezier(.4,0,.2,1),box-shadow .35s;box-shadow:none}
+.toast.toast-success{background:linear-gradient(90deg,#0a8f50,#12b865)}
+.toast.toast-error{background:linear-gradient(90deg,#c0182a,#e02030)}
+.toast.show{height:58px;box-shadow:0 4px 20px rgba(0,0,0,.18)}
+
+/* ── 카드 ── */
+.card{background:#fff;border-radius:var(--r);padding:22px 20px;margin-bottom:16px;box-shadow:var(--shadow);border:1px solid rgba(212,228,250,.7)}
+.card-title{font-size:15.5px;font-weight:800;color:var(--blue-dark);margin-bottom:16px;padding-bottom:10px;border-bottom:1.5px solid var(--blue-soft);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ptag{font-size:11.5px;font-weight:800;padding:3px 10px;border-radius:50px;background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue-mid)}
+.ptag.child{background:#FEF3E2;color:#C2710C;border-color:#F8D9A8}
+
+/* ── 안내 배너 ── */
+.info-banner{background:var(--blue-soft);border:1.5px solid var(--blue-mid);border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:14px;color:var(--blue-dark);font-weight:600;line-height:1.7}
+.info-banner strong{font-weight:800}
+
+/* ── 확인 배너 ── */
+.confirm-banner{background:#E6F9F0;border:2px solid #A7E8C5;border-radius:var(--r);padding:16px;display:flex;align-items:center;gap:12px;margin-top:14px}
+.confirm-banner .ci{font-size:26px}
+.confirm-banner div p:first-child{font-size:15px;font-weight:800;color:#0D6E3F}
+.confirm-banner div p:last-child{font-size:13px;color:#166534;margin-top:2px}
+
+/* ── 완료 화면 ── */
+.done-card{background:linear-gradient(135deg,#E6F9F0,#D4F5E9);border:2px solid #86efac;border-radius:var(--r);padding:28px 20px;text-align:center;margin-bottom:16px}
+.done-card .di{font-size:48px;margin-bottom:12px}
+.done-card h2{font-size:20px;font-weight:800;color:#0D6E3F;margin-bottom:8px}
+.done-card p{font-size:14px;color:#166534;line-height:1.7}
+
+/* ── 폼 ── */
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:14.5px;font-weight:700;color:#374151;margin-bottom:7px}
+.req{color:#F05454;margin-left:3px}
+.tip{font-size:12.5px;color:#94a3b8;margin-top:4px;font-weight:500}
+.form-control{width:100%;padding:13px 15px;border:1.5px solid var(--border);border-radius:10px;font-size:16px;color:var(--text);background:#fff;transition:.2s;font-family:inherit;-webkit-appearance:none}
+.form-control:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(52,120,246,.12)}
+.form-control.input-error{border-color:#F05454;box-shadow:0 0 0 3px rgba(240,84,84,.12)}
+select.form-control{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235A6A82' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:40px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.field-error{display:block;margin-top:8px;font-size:13px;font-weight:700;color:#C0182A}
+
+/* ── 성별 ── */
+.gender-wrap{display:flex;gap:10px}
+.gender-btn{flex:1;padding:13px;border:2px solid var(--border);border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;text-align:center;transition:.2s;background:#fff;color:var(--text-sub);font-family:inherit}
+.gender-btn.active{border-color:var(--blue);background:var(--blue);color:#fff}
+
+/* ── 입력 모드 토글 ── */
+.passport-toggle{display:flex;gap:10px;margin-bottom:18px}
+.ptog{flex:1;padding:13px;border:2px solid var(--border);border-radius:10px;font-size:14.5px;font-weight:700;cursor:pointer;transition:.2s;background:#fff;color:var(--text-sub);text-align:center;font-family:inherit}
+.ptog.active{border-color:var(--blue);background:var(--blue);color:#fff}
+
+/* ── 업로드 ── */
+.upload-area{border:2.5px dashed var(--blue-mid);border-radius:var(--r);padding:24px 18px;text-align:center;cursor:pointer;transition:.2s;background:var(--blue-soft);margin-bottom:16px}
+.upload-area:hover,.upload-area.drag{border-color:var(--blue);background:#deeeff}
+.upload-area .u-icon{font-size:34px;display:block;margin-bottom:8px}
+.upload-area p{font-size:14px;color:var(--text-sub);font-weight:600}
+.preview-img{max-width:100%;max-height:170px;border-radius:10px;margin-top:12px;display:none}
+.up-status{font-size:13px;font-weight:700;margin-bottom:14px;display:none}
+
+/* ── 조회 결과 ── */
+.lookup-box{background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:16px}
+.info-row{display:flex;padding:8px 0;border-bottom:1px solid var(--border);font-size:14.5px}
+.info-row:last-child{border-bottom:none}
+.info-label{font-weight:700;color:var(--text-sub);width:110px;flex-shrink:0}
+.info-value{color:var(--text);font-weight:600}
+
+/* ── 알림 ── */
+.alert{padding:13px 16px;border-radius:10px;margin-bottom:14px;font-size:14.5px;font-weight:700;display:none}
+.alert-error{background:#FFF0F0;color:#C0182A;border:1px solid #FFBBBB}
+.alert.show{display:block}
+
+/* ── 버튼 ── */
+.btn-submit{width:100%;padding:16px;background:var(--blue);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:800;cursor:pointer;transition:.2s;margin-top:8px;font-family:inherit;box-shadow:0 4px 14px rgba(52,120,246,.28)}
+.btn-submit:hover{background:var(--blue-dark)}
+.btn-submit:disabled{background:#B0C4E0;cursor:not-allowed;box-shadow:none}
+.btn-primary{padding:12px 20px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;width:100%}
+
+/* ── 로딩 ── */
+.spinner{display:inline-block;width:18px;height:18px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:7px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.hidden{display:none!important}
+.mt14{margin-top:14px}
+.step{display:none}.step.active{display:block}
+
+@media(max-width:560px){.row2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- 커튼 토스트 -->
+<div id="globalToast" class="toast"></div>
+
+<div class="header">
+  <div class="badge">아이러브베트남</div>
+  <h1>🛂 여권 정보 등록</h1>
+  <p>예약 후 탑승자 전원의 여권 정보를 등록해 주세요</p>
+</div>
+
+<div class="content">
+  <div id="mainAlert" class="alert"></div>
+
+  <!-- STEP 1: 예약 조회 -->
+  <div id="step1" class="step active">
+    <div class="info-banner">
+      📌 신청 시 입력한 <strong>대표자 영문 성함</strong>과<br>
+      <strong>연락처</strong>를 입력해 주세요.
+    </div>
+    <div class="card">
+      <div class="card-title">🔍 예약 확인</div>
+      <div class="form-group">
+        <label>대표자 영문 성함 <span class="req">*</span></label>
+        <input type="text" id="s1_name" class="form-control" placeholder="예) KIM MINSOO" oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <div class="form-group">
+        <label>연락처 <span class="req">*</span></label>
+        <input type="tel" id="s1_contact" class="form-control" placeholder="예) 010-1234-5678" inputmode="numeric" oninput="formatPhone(this)">
+      </div>
+      <button class="btn-primary mt14" id="lookupBtn" onclick="lookupBooking()">🔍 조회하기</button>
+      <div id="lookupError" style="display:none;margin-top:12px;padding:13px 16px;border-radius:10px;background:#FFF0F0;color:#C0182A;border:1px solid #FFBBBB;font-size:14.5px;font-weight:700"></div>
+
+      <div id="s1_result" class="hidden">
+        <div class="confirm-banner mt14">
+          <span class="ci">✅</span>
+          <div>
+            <p>예약이 확인되었습니다</p>
+            <p id="s1_bookingInfo"></p>
+          </div>
+        </div>
+        <div class="lookup-box mt14" id="s1_lookupBox"></div>
+        <button class="btn-submit" style="margin-top:16px" onclick="goToStep2()">여권 정보 입력하기 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: 탑승자별 여권 입력 -->
+  <div id="step2" class="step">
+    <div class="info-banner" id="paxBanner"></div>
+    <div id="passengerForms"></div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn-submit" style="flex:1;background:#64748b;box-shadow:none" onclick="goToStep1()">← 돌아가기</button>
+      <button class="btn-submit" id="saveBtn" style="flex:2;margin-top:0" onclick="savePassport()">여권 정보 저장</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: 완료 -->
+  <div id="step3" class="step">
+    <div class="done-card">
+      <div class="di">✅</div>
+      <h2>제출이 완료되었습니다</h2>
+      <p id="doneMsg">입력하신 탑승자 전원의 여권 정보가 예약에 연결되었습니다.<br>추가 문의는 담당자에게 연락해 주세요.</p>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-submit" style="flex:1;background:#64748b;box-shadow:none;margin-top:0" onclick="closeWindow()">닫기</button>
+      <button class="btn-submit" style="flex:1;margin-top:0" onclick="restart()">처음으로</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// 국가 목록
+// ─────────────────────────────────────────────
+const COUNTRIES = [
+  '대한민국',
+  '가나','가봉','가이아나','감비아','과테말라','그레나다','그리스',
+  '기니','기니비사우','나미비아','나우루','나이지리아','남수단',
+  '남아프리카공화국','네덜란드','네팔','노르웨이','뉴질랜드','니제르','니카라과',
+  '덴마크','도미니카','도미니카공화국','동티모르',
+  '라오스','라이베리아','라트비아','러시아','레바논','레소토','루마니아',
+  '룩셈부르크','르완다','리비아','리투아니아','리히텐슈타인',
+  '마다가스카르','마셜제도','말라위','말레이시아','말리','멕시코',
+  '모나코','모로코','모리셔스','모리타니','모잠비크','몬테네그로',
+  '몰디브','몰도바','몰타','몽골','미국','미얀마','미크로네시아',
+  '바누아투','바레인','바베이도스','바하마','방글라데시','베냉',
+  '베네수엘라','베트남','벨기에','벨라루스','벨리즈',
+  '보스니아헤르체고비나','보츠와나','볼리비아','부룬디','부르키나파소',
+  '부탄','북마케도니아','불가리아','브라질','브루나이',
+  '사모아','사우디아라비아','산마리노','상투메프린시페','세네갈','세르비아',
+  '세이셸','세인트루시아','세인트빈센트그레나딘','세인트키츠네비스',
+  '소말리아','솔로몬제도','수단','수리남','스리랑카','스웨덴','스위스',
+  '스페인','슬로바키아','슬로베니아','시에라리온','시리아','싱가포르',
+  '아랍에미리트','아르메니아','아르헨티나','아이슬란드','아이티',
+  '아일랜드','아제르바이잔','아프가니스탄','안도라','알바니아','알제리',
+  '앙골라','앤티가바부다','에리트레아','에스와티니','에스토니아',
+  '에콰도르','에티오피아','엘살바도르','영국','예멘','오만','오스트리아',
+  '온두라스','요르단','우간다','우루과이','우즈베키스탄','우크라이나',
+  '이라크','이란','이스라엘','이집트','이탈리아','인도','인도네시아','일본',
+  '자메이카','잠비아','조지아','중국','중앙아프리카공화국','지부티','짐바브웨',
+  '차드','체코','칠레',
+  '카메룬','카보베르데','카자흐스탄','카타르','캄보디아','캐나다','케냐',
+  '코모로','코스타리카','코트디부아르','콜롬비아','콩고','콩고민주공화국',
+  '쿠바','쿠웨이트','크로아티아','키리바시','키르기스스탄','키프로스',
+  '타지키스탄','태국','터키(튀르키예)','토고','통가','투르크메니스탄',
+  '투발루','튀니지','트리니다드토바고',
+  '파나마','파라과이','파키스탄','파푸아뉴기니','팔라우','팔레스타인',
+  '페루','포르투갈','폴란드','프랑스','피지','핀란드','필리핀',
+  '헝가리','홍콩'
+];
+const COUNTRY_OPTIONS = '<option value="">국적 선택</option>' +
+  COUNTRIES.map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join('');
+
+let rowIndex = null;
+let paxList  = [];   // [{type:'성인'|'소아'}, ...]
+
+// ── 스텝 전환 ──────────────────────────────────
+function showStep(n) {
+  ['step1','step2','step3'].forEach(function(s,i){
+    document.getElementById(s).classList.toggle('active', i+1===n);
+  });
+  window.scrollTo(0,0);
+}
+function goToStep1(){ showStep(1); }
+function goToStep2(){ showStep(2); }
+function restart(){
+  showStep(1);
+  setVal('s1_name',''); setVal('s1_contact','');
+  hide('s1_result'); rowIndex=null; paxList=[];
+  document.getElementById('passengerForms').innerHTML='';
+}
+
+// ── 창 닫기 (카카오톡 등 인앱 브라우저 대응) ──
+function closeWindow() {
+  try { window.open('', '_self'); window.close(); } catch(e) {}
+  setTimeout(function(){
+    var el = document.getElementById('doneMsg');
+    if (el) el.textContent = '창을 닫아 주세요. (자동으로 닫히지 않으면 브라우저의 닫기 버튼을 눌러주세요)';
+  }, 500);
+}
+
+// ── 연락처 자동 하이픈 (숫자만) ──────────────
+function formatPhone(el) {
+  var n = el.value.replace(/[^0-9]/g, '').slice(0, 11);
+  var r;
+  if (n.length < 4)       r = n;
+  else if (n.length < 7)  r = n.slice(0,3) + '-' + n.slice(3);
+  else if (n.length < 11) r = n.slice(0,3) + '-' + n.slice(3,6) + '-' + n.slice(6);
+  else                    r = n.slice(0,3) + '-' + n.slice(3,7) + '-' + n.slice(7);
+  el.value = r;
+}
+
+// ── 예약 조회 ───────────────────────────────────
+function lookupBooking() {
+  const name = v('s1_name'); const tel = v('s1_contact');
+  if (!name) return showLookupErr('대표자 영문 성함을 입력해 주세요.');
+  if (!tel)  return showLookupErr('연락처를 입력해 주세요.');
+  hide('s1_result');
+  document.getElementById('lookupError').style.display='none';
+
+  const btn = document.getElementById('lookupBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner" style="border-top-color:var(--blue);border-color:rgba(52,120,246,.3)"></span> 조회 중…';
+  function restoreBtn(){ btn.disabled=false; btn.innerHTML='🔍 조회하기'; }
+
+  if (typeof google === 'undefined' || !google.script) {
+    restoreBtn(); return showLookupErr('Google Apps Script 환경에서만 사용 가능합니다.');
+  }
+
+  const tid = setTimeout(function(){ restoreBtn(); showLookupErr('응답 시간 초과. 잠시 후 다시 시도해 주세요.'); }, 15000);
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      clearTimeout(tid); restoreBtn();
+      try {
+        if (!res || !res.ok) return showLookupErr(res ? res.msg : '응답 없음');
+        rowIndex = res.data._rowIndex;
+
+        const adults   = parseInt(res.data['성인']) || 0;
+        const children = parseInt(res.data['소아']) || 0;
+        paxList = [];
+        for (var a=0; a<adults;   a++) paxList.push({type:'성인'});
+        for (var c=0; c<children; c++) paxList.push({type:'소아'});
+        if (!paxList.length) paxList.push({type:'성인'}); // 최소 1명
+
+        document.getElementById('s1_bookingInfo').textContent =
+          (res.data['상품명']||'') + ' · ' + (res.data['투어날짜']||'');
+        document.getElementById('s1_lookupBox').innerHTML = [
+          ['상품명','상품명'],['투어날짜','투어 날짜'],
+          ['대표자영문성함','대표자'],['성인','성인'],['소아','소아']
+        ].map(function(p){
+          var val = res.data[p[0]]; if (val===''||val==null) return '';
+          return '<div class="info-row"><span class="info-label">'+p[1]+'</span><span class="info-value">'+val+'</span></div>';
+        }).join('');
+
+        renderPassengerForms();
+        show('s1_result');
+      } catch(err){ showLookupErr('화면 처리 오류: ' + err.message); }
+    })
+    .withFailureHandler(function(e){ clearTimeout(tid); restoreBtn(); showLookupErr('서버 오류: ' + (e.message||e)); })
+    .lookupByContact(name, tel);
+}
+
+// ── 탑승자 폼 생성 ──────────────────────────────
+function renderPassengerForms() {
+  var adults = paxList.filter(function(p){return p.type==='성인';}).length;
+  var child  = paxList.filter(function(p){return p.type==='소아';}).length;
+  document.getElementById('paxBanner').innerHTML =
+    '👥 예약 인원: <strong>성인 '+adults+'명 · 소아 '+child+'명</strong> (총 '+paxList.length+'명)<br>아래 탑승자 전원의 여권 정보를 입력해 주세요.';
+
+  var html = '';
+  paxList.forEach(function(p, i){
+    var tagClass = p.type==='소아' ? 'ptag child' : 'ptag';
+    html += ''+
+    '<div class="card" id="pax_'+i+'">'+
+      '<div class="card-title">🧍 탑승자 '+(i+1)+' <span class="'+tagClass+'">'+p.type+'</span></div>'+
+      '<div class="passport-toggle">'+
+        '<button type="button" class="ptog active" onclick="switchPMode('+i+',\'manual\',this)">✏️ 직접 입력</button>'+
+        '<button type="button" class="ptog" onclick="switchPMode('+i+',\'upload\',this)">📷 이미지 업로드</button>'+
+      '</div>'+
+      // 이미지 업로드 (선택 — 직접입력 필드를 자동으로 채워줌)
+      '<div id="up_'+i+'" class="hidden">'+
+        '<div class="upload-area" id="uparea_'+i+'" onclick="document.getElementById(\'file_'+i+'\').click()" '+
+             'ondragover="event.preventDefault();this.classList.add(\'drag\')" ondragleave="this.classList.remove(\'drag\')" ondrop="handleDrop(event,'+i+')">'+
+          '<span class="u-icon">📷</span>'+
+          '<p>여권 사진을 클릭하거나 끌어다 놓으세요</p>'+
+          '<p style="font-size:12px;color:#94a3b8;margin-top:4px">자동 인식 후 아래 항목을 확인·수정하세요</p>'+
+          '<img id="preview_'+i+'" class="preview-img" src="" alt="미리보기">'+
+        '</div>'+
+        '<input type="file" id="file_'+i+'" accept="image/*" class="hidden" onchange="handleFile('+i+',this)">'+
+        '<div id="status_'+i+'" class="up-status"></div>'+
+      '</div>'+
+      // 항상 보이는 입력 항목
+      '<div class="form-group"><label>여권상 영문 성명 <span class="req">*</span></label>'+
+        '<input type="text" id="name_'+i+'" class="form-control" placeholder="예) KIM MINSOO" oninput="this.value=this.value.toUpperCase()"></div>'+
+      '<div class="form-group"><label>성별 <span class="req">*</span></label>'+
+        '<div class="gender-wrap">'+
+          '<button type="button" class="gender-btn" onclick="selectGender('+i+',\'남\',this)">👨 남</button>'+
+          '<button type="button" class="gender-btn" onclick="selectGender('+i+',\'여\',this)">👩 여</button>'+
+        '</div><input type="hidden" id="gender_'+i+'" value=""></div>'+
+      '<div class="form-group"><label>국적 <span class="req">*</span></label>'+
+        '<select id="nat_'+i+'" class="form-control">'+COUNTRY_OPTIONS+'</select></div>'+
+      '<div class="row2">'+
+        '<div class="form-group"><label>생년월일 <span class="req">*</span></label>'+
+          '<input type="date" id="birth_'+i+'" class="form-control"></div>'+
+        '<div class="form-group"><label>여권 만료일 <span class="req">*</span></label>'+
+          '<input type="date" id="expiry_'+i+'" class="form-control"></div>'+
+      '</div>'+
+      '<div class="form-group" style="margin-bottom:0"><label>여권 번호 <span class="req">*</span></label>'+
+        '<input type="text" id="passno_'+i+'" class="form-control" placeholder="예) M12345678" oninput="this.value=this.value.toUpperCase()"></div>'+
+      '<div id="err_'+i+'" class="field-error hidden"></div>'+
+    '</div>';
+  });
+  document.getElementById('passengerForms').innerHTML = html;
+}
+
+// ── 입력 모드 전환 (탑승자별) ──────────────────
+function switchPMode(i, mode, el) {
+  var wrap = el.closest('.passport-toggle');
+  wrap.querySelectorAll('.ptog').forEach(function(b){ b.classList.remove('active'); });
+  el.classList.add('active');
+  document.getElementById('up_'+i).classList.toggle('hidden', mode!=='upload');
+}
+
+// ── 성별 선택 (탑승자별) ───────────────────────
+function selectGender(i, val, el) {
+  el.closest('.gender-wrap').querySelectorAll('.gender-btn').forEach(function(b){ b.classList.remove('active'); });
+  el.classList.add('active');
+  setVal('gender_'+i, val);
+}
+
+// ── 이미지 업로드 (탑승자별) ───────────────────
+function handleDrop(e, i) {
+  e.preventDefault();
+  document.getElementById('uparea_'+i).classList.remove('drag');
+  var f = e.dataTransfer.files[0];
+  if (f && f.type.indexOf('image/')===0) processFile(i, f);
+}
+function handleFile(i, input){ if (input.files[0]) processFile(i, input.files[0]); }
+
+// HEIC/HEIF 판별
+function isHeic(file){
+  var t = (file.type || '').toLowerCase();
+  var n = (file.name || '').toLowerCase();
+  return t.indexOf('heic') !== -1 || t.indexOf('heif') !== -1 || /\.hei[cf]$/.test(n);
+}
+
+function processFile(i, file) {
+  // HEIC면 JPG로 변환 후 진행
+  if (isHeic(file)) {
+    if (typeof heic2any === 'undefined') {
+      showUp(i, '❌ HEIC 변환 모듈을 불러오지 못했습니다. 네트워크 확인 후 다시 시도해 주세요.', '#C0182A');
+      return;
+    }
+    showUp(i, '🔄 아이폰 사진(HEIC) → JPG 변환 중…', '#94a3b8');
+    heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 })
+      .then(function(out){
+        var blob = Array.isArray(out) ? out[0] : out;
+        var nm = (file.name || 'passport').replace(/\.[^.]+$/, '') + '.jpg';
+        readAndUpload(i, blob, nm, 'image/jpeg');
+      })
+      .catch(function(){
+        // 변환 실패(최신 HEIC 등) → 원본이라도 업로드 (자동인식은 어려움, 직접 입력 안내)
+        showUp(i, '⚠️ 자동 변환이 어려운 사진입니다. 원본을 업로드하니 아래 항목은 직접 입력해 주세요.', '#C2710C');
+        readAndUpload(i, file, file.name || 'passport.heic', file.type || 'image/heic');
+      });
+  } else {
+    readAndUpload(i, file, file.name || 'passport.jpg', file.type || 'image/jpeg');
+  }
+}
+
+function readAndUpload(i, blob, outName, mime) {
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var img = document.getElementById('preview_'+i);
+    img.src = e.target.result; img.style.display='block';
+    var tel   = (v('s1_contact') || 'unknown').replace(/[^0-9]/g,'') || 'unknown';
+    var fname = tel + '_pax' + (i+1) + '_' + outName;
+    showUp(i, '⏳ 업로드 및 자동 인식 중…', '#94a3b8');
+    google.script.run
+      .withSuccessHandler(function(res){
+        if (res && res.ok) {
+          paxList[i].imageUrl = res.fileUrl;
+          var filled = res.ocrText ? parseMRZ(i, res.ocrText) : false;
+          if (filled) {
+            showUp(i, '✅ 자동 인식 완료 — 아래 항목을 확인·수정해 주세요', '#0D6E3F');
+          } else {
+            showUp(i, '✅ 사진 업로드 완료 · ⚠️ 자동 인식이 안 되었어요. 아래 항목을 직접 입력해 주세요', '#C2710C');
+          }
+        } else {
+          showUp(i, '❌ ' + (res ? res.msg : '업로드 실패'), '#C0182A');
+        }
+      })
+      .withFailureHandler(function(e){ showUp(i, '❌ ' + e.message, '#C0182A'); })
+      .uploadPassportImage({ imageBase64:e.target.result, mimeType:mime, filename:fname });
+  };
+  reader.readAsDataURL(blob);
+}
+function showUp(i, msg, color){
+  var el = document.getElementById('status_'+i);
+  el.textContent = msg; el.style.color = color; el.style.display='block';
+}
+
+// 여권 국가코드(MRZ 3자리) → 국적명
+var NAT_MAP = {
+  KOR:'대한민국', USA:'미국', JPN:'일본', CHN:'중국', VNM:'베트남', VIE:'베트남',
+  THA:'태국', PHL:'필리핀', IDN:'인도네시아', MYS:'말레이시아', SGP:'싱가포르',
+  TWN:'대만', HKG:'홍콩', GBR:'영국', FRA:'프랑스', DEU:'독일', CAN:'캐나다',
+  AUS:'호주', IND:'인도', RUS:'러시아', ESP:'스페인', ITA:'이탈리아'
+};
+
+// ── MRZ 파싱 → 탑승자 필드 자동 입력 ───────────
+function parseMRZ(i, text){
+  // MRZ 후보 라인: 공백제거·대문자, 허용문자(A-Z0-9<)만, 길이 20+
+  // ※ 데이터 라인은 '<'가 없을 수 있으므로 '<' 요구하지 않음
+  var cand = [];
+  text.split('\n').forEach(function(raw){
+    var l = raw.replace(/\s/g,'').toUpperCase();
+    if (l.length >= 20 && /^[A-Z0-9<]+$/.test(l)) cand.push(l);
+  });
+  if (cand.length < 1) return false;
+
+  // L1 = 이름 라인 ('<<' 포함, 가급적 'P'로 시작)
+  var l1Idx = -1;
+  for (var k = 0; k < cand.length; k++){
+    if (cand[k].charAt(0) === 'P' && cand[k].indexOf('<<') !== -1){ l1Idx = k; break; }
+  }
+  if (l1Idx === -1){
+    for (var k2 = 0; k2 < cand.length; k2++){
+      if (cand[k2].indexOf('<<') !== -1){ l1Idx = k2; break; }
+    }
+  }
+  if (l1Idx === -1) return false;
+  var l1 = cand[l1Idx];
+
+  // L2 = 데이터 라인: 숫자 10개 이상 중 가장 많은 라인 (인쇄 텍스트 자동 제외)
+  var l2 = '', bestDigits = 9;
+  for (var n = 0; n < cand.length; n++){
+    if (n === l1Idx) continue;
+    var dc = (cand[n].match(/\d/g) || []).length;
+    if (dc > bestDigits){ bestDigits = dc; l2 = cand[n]; }
+  }
+
+  // ── L1: 이름 (0-1 종류 / 2-4 발급국 / 5- 이름: 성<<이름) ──
+  var afterCountry = l1.substring(5);
+  var parts   = afterCountry.split('<<');
+  var surname = (parts[0] || '').replace(/</g,' ').trim();
+  var given   = (parts[1] || '').replace(/</g,' ').trim();
+  var name    = (surname + ' ' + given).trim();
+  if (name) setVal('name_'+i, name);
+
+  // ── L2: 여권번호(0-8) 국적(10-12) 생년월일(13-18) 성별(20) 만료(21-26) ──
+  if (l2){
+    var passNo = l2.substring(0,9).replace(/</g,'');
+    var nat    = l2.substring(10,13).replace(/</g,'');
+    var dob    = l2.substring(13,19);
+    var sex    = l2.charAt(20);
+    var expiry = l2.substring(21,27);
+
+    if (passNo) setVal('passno_'+i, passNo);
+    if (/^\d{6}$/.test(dob))    setVal('birth_'+i,  mrzDate(dob,false));
+    if (/^\d{6}$/.test(expiry)) setVal('expiry_'+i, mrzDate(expiry,true));
+    if (sex === 'M' || sex === 'F') selectGenderByVal(i, sex === 'M' ? '남' : '여');
+    if (NAT_MAP[nat]) setNationality(i, NAT_MAP[nat]);
+  }
+
+  return !!name;
+}
+function selectGenderByVal(i, val){
+  var card = document.getElementById('pax_'+i);
+  if (!card) return;
+  card.querySelectorAll('.gender-btn').forEach(function(b){
+    b.classList.toggle('active', b.textContent.indexOf(val) !== -1);
+  });
+  setVal('gender_'+i, val);
+}
+function setNationality(i, country){
+  var sel = document.getElementById('nat_'+i);
+  if (!sel) return;
+  for (var o = 0; o < sel.options.length; o++){
+    if (sel.options[o].value === country){ sel.selectedIndex = o; return; }
+  }
+}
+function mrzDate(yymmdd,isExp){
+  var yy=yymmdd.slice(0,2),mm=yymmdd.slice(2,4),dd=yymmdd.slice(4,6);
+  var cent=isExp?(parseInt(yy)<50?'20':'19'):(parseInt(yy)>24?'19':'20');
+  return cent+yy+'-'+mm+'-'+dd;
+}
+
+// ── 여권 저장 (전원) ───────────────────────────
+function savePassport(){
+  if (!rowIndex) return showAlert('예약 조회를 먼저 진행해 주세요.');
+
+  // 에러 초기화
+  paxList.forEach(function(_, i){
+    document.getElementById('err_'+i).classList.add('hidden');
+    ['name_'+i,'nat_'+i,'birth_'+i,'expiry_'+i,'passno_'+i].forEach(function(id){
+      var el=document.getElementById(id); if(el) el.classList.remove('input-error');
+    });
+  });
+
+  var passengers = [];
+  for (var i=0;i<paxList.length;i++){
+    var nm=v('name_'+i), gd=v('gender_'+i), nat=v('nat_'+i),
+        bth=v('birth_'+i), exp=v('expiry_'+i), pno=v('passno_'+i);
+
+    var missing = null, missEl = null;
+    if (!nm)  { missing='여권상 영문 성명을 입력해 주세요.'; missEl='name_'+i; }
+    else if (!gd)  { missing='성별을 선택해 주세요.'; missEl='name_'+i; }
+    else if (!nat) { missing='국적을 선택해 주세요.'; missEl='nat_'+i; }
+    else if (!bth) { missing='생년월일을 입력해 주세요.'; missEl='birth_'+i; }
+    else if (!pno) { missing='여권 번호를 입력해 주세요.'; missEl='passno_'+i; }
+    else if (!exp) { missing='여권 만료일을 입력해 주세요.'; missEl='expiry_'+i; }
+
+    if (missing){
+      var errEl=document.getElementById('err_'+i);
+      errEl.textContent='⚠️ 탑승자 '+(i+1)+': '+missing;
+      errEl.classList.remove('hidden');
+      var inp=document.getElementById(missEl);
+      if(inp){ inp.classList.add('input-error'); inp.scrollIntoView({behavior:'smooth',block:'center'}); }
+      return;
+    }
+    passengers.push({
+      passportName:nm, gender:gd, nationality:nat,
+      birthDate:bth, expiryDate:exp, passportNo:pno,
+      imageUrl: paxList[i].imageUrl || ''
+    });
+  }
+
+  var btn=document.getElementById('saveBtn');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> 저장 중…';
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      btn.disabled=false; btn.innerHTML='여권 정보 저장';
+      if(!res.ok) return showAlert(res.msg);
+      showStep(3);
+    })
+    .withFailureHandler(function(e){
+      btn.disabled=false; btn.innerHTML='여권 정보 저장';
+      showAlert(e.message);
+    })
+    .savePassportInfo({ _rowIndex:rowIndex, passengers:passengers });
+}
+
+// ── 유틸 ───────────────────────────────────────
+function v(id)        { return (document.getElementById(id)||{}).value||''; }
+function setVal(id,val){ var el=document.getElementById(id); if(el) el.value=val; }
+function show(id)     { document.getElementById(id).classList.remove('hidden'); }
+function hide(id)     { document.getElementById(id).classList.add('hidden'); }
+function showLookupErr(msg){
+  var el=document.getElementById('lookupError');
+  el.textContent='❌ '+msg; el.style.display='block';
+}
+function showAlert(msg){
+  var el=document.getElementById('mainAlert');
+  el.className='alert alert-error show'; el.textContent=msg;
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function showToast(msg, type, duration){
+  var t=document.getElementById('globalToast');
+  t.textContent=msg; t.className='toast toast-'+(type||'success')+' show';
+  clearTimeout(t._tid);
+  t._tid=setTimeout(function(){ t.classList.remove('show'); }, duration||3200);
+}
+</script>
+</body>
+</html>
